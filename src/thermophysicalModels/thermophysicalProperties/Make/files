@@ -1,0 +1,18 @@
+thermophysicalFunctions/thermophysicalFunction/thermophysicalFunction.C
+
+
+APIfunctions           = thermophysicalFunctions/APIfunctions
+$(APIfunctions)/APIdiffCoefFunc/APIdiffCoefFunc.C
+
+thermophysicalProperties/thermophysicalProperties.C
+
+
+liquidProperties/liquidProperties/liquidProperties.C
+liquidProperties/liquidMixtureProperties/liquidMixtureProperties.C
+
+
+solidProperties/solidProperties/solidProperties.C
+solidProperties/solidProperties/solidPropertiesNew.C
+solidProperties/solidMixtureProperties/solidMixtureProperties.C
+
+LIB = $(FOAM_USER_LIBBIN)/libthermophysicalProperties
