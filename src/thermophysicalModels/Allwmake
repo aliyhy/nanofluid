@@ -1,0 +1,5 @@
+
+wmake specie
+wmake thermophysicalProperties 
+wmake basic
+wmake reactionThermo
