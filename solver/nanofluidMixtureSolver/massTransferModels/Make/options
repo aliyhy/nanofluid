@@ -1,0 +1,23 @@
+EXE_INC = \
+    -I../phasesSystem/lnInclude \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I../../../src/thermophysicalModels/basic/lnInclude \
+    -I../../../src/thermophysicalModels/specie/lnInclude \
+    -I../../../src/thermophysicalModels/reactionThermo/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/solidThermo/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/solidSpecie/lnInclude \
+    -I$(LIB_SRC)/transportModels/compressible/lnInclude \
+    -I$(LIB_SRC)/transportModels/geometricVoF/lnInclude
+
+LIB_LIBS = \
+    -L$(FOAM_USER_LIBBIN) \
+    -lspecie \
+    -lthermophysicalProperties \
+    -lfluidThermophysicalModels \
+    -lreactionThermophysicalModels \  
+    -lfiniteVolume \
+    -lmeshTools \
+    -lsolidThermo \
+    -lsolidSpecie \
+    -lgeometricVoF
