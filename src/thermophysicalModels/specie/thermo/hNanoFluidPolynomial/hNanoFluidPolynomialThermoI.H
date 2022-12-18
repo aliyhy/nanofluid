@@ -1,0 +1,327 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     |
+    \\  /    A nd           | www.openfoam.com
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+    Copyright (C) 2011-2017 OpenFOAM Foundation
+-------------------------------------------------------------------------------
+License
+    This file is part of OpenFOAM.
+
+    OpenFOAM is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+
+\*---------------------------------------------------------------------------*/
+
+#include "hNanoFluidPolynomialThermo.H"
+
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+
+template<class EquationOfState, int PolySize>
+inline Foam::hNanoFluidPolynomialThermo<EquationOfState, PolySize>::hNanoFluidPolynomialThermo
+(
+    const EquationOfState& pt,
+    const scalar Hf,
+    const scalar Sf,
+    const Polynomial<PolySize>& CpCoeffs,
+    const typename Polynomial<PolySize>::intPolyType& hCoeffs,
+    const Polynomial<PolySize>& sCoeffs,
+    const Polynomial<PolySize>& rhoCoeffs,
+    const scalar rhoP,
+    const scalar CpP
+)
+:
+    EquationOfState(pt),
+    Hf_(Hf),
+    Sf_(Sf),
+    CpCoeffs_(CpCoeffs),
+    hCoeffs_(hCoeffs),
+    sCoeffs_(sCoeffs),
+    rhoCoeffs_(rhoCoeffs),
+    rhoP_(rhoP),
+    CpP_(CpP)
+{}
+
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+template<class EquationOfState, int PolySize>
+inline Foam::hNanoFluidPolynomialThermo<EquationOfState, PolySize>::hNanoFluidPolynomialThermo
+(
+    const word& name,
+    const hNanoFluidPolynomialThermo& pt
+)
+:
+    EquationOfState(name, pt),
+    Hf_(pt.Hf_),
+    Sf_(pt.Sf_),
+    CpCoeffs_(pt.CpCoeffs_),
+    hCoeffs_(pt.hCoeffs_),
+    sCoeffs_(pt.sCoeffs_),
+    rhoCoeffs_(pt.rhoCoeffs_),
+    rhoP_(pt.rhoP_),
+    CpP_(pt.CpP_)
+{}
+
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+template<class EquationOfState, int PolySize>
+inline Foam::scalar Foam::hNanoFluidPolynomialThermo<EquationOfState, PolySize>::limit
+(
+    const scalar T
+) const
+{
+    return T;
+}
+
+
+template<class EquationOfState, int PolySize>
+inline Foam::scalar Foam::hNanoFluidPolynomialThermo<EquationOfState, PolySize>::Cp
+(
+    const fvMesh& mesh,
+    const scalar p,
+    const scalar T
+) const
+{
+    return
+      (
+        rhoP_*phiNP(mesh)*CpP_ 
+        + (1.-phiNP(mesh))
+        *(EquationOfState::rhoBF(mesh, p, T))
+        *CpBF(mesh, p, T)
+      )/(EquationOfState::rho(mesh, p, T));
+}
+
+
+
+template<class EquationOfState, int PolySize>
+inline Foam::scalar Foam::hNanoFluidPolynomialThermo<EquationOfState, PolySize>::CpBF
+(
+    const fvMesh& mesh, const scalar p, const scalar T
+) const
+{
+    return CpCoeffs_.value(T);
+}
+
+template<class EquationOfState, int PolySize>
+inline Foam::scalar Foam::hNanoFluidPolynomialThermo<EquationOfState, PolySize>::phiNP
+(
+    const fvMesh& mesh
+) const
+{
+    return  EquationOfState::phiNP(mesh); 
+}
+
+
+template<class EquationOfState, int PolySize>
+inline Foam::scalar Foam::hNanoFluidPolynomialThermo<EquationOfState, PolySize>::Ha
+(
+    const fvMesh& mesh, const scalar p, const scalar T
+) const
+{
+    return hCoeffs_.value(T) + EquationOfState::H(mesh, p, T);
+}
+
+
+template<class EquationOfState, int PolySize>
+inline Foam::scalar Foam::hNanoFluidPolynomialThermo<EquationOfState, PolySize>::Hs
+(
+    const fvMesh& mesh, const scalar p, const scalar T
+) const
+{
+    return Ha(mesh, p, T) - Hc();
+}
+
+
+template<class EquationOfState, int PolySize>
+inline Foam::scalar Foam::hNanoFluidPolynomialThermo<EquationOfState, PolySize>::Hc()
+const
+{
+    return Hf_;
+}
+
+
+template<class EquationOfState, int PolySize>
+inline Foam::scalar Foam::hNanoFluidPolynomialThermo<EquationOfState, PolySize>::S
+(
+    const fvMesh& mesh, const scalar p,
+    const scalar T
+) const
+{
+    return sCoeffs_.value(T) + EquationOfState::S(mesh, p, T);
+}
+
+
+template<class EquationOfState, int PolySize>
+inline Foam::scalar Foam::hNanoFluidPolynomialThermo<EquationOfState, PolySize>::dGdT
+(
+    const fvMesh& mesh, const scalar p,
+    const scalar T
+) const
+{
+    return
+    (
+        hCoeffs_.derivative(T)
+      - T*sCoeffs_.derivative(T)
+      - sCoeffs_.value(T)
+    );
+}
+
+
+template<class EquationOfState, int PolySize>
+inline Foam::scalar Foam::hNanoFluidPolynomialThermo<EquationOfState, PolySize>::dCpdT
+(
+    const fvMesh& mesh, const scalar p,
+    const scalar T
+) const
+{
+    return
+    (
+        CpCoeffs_.derivative(T)
+    );
+}
+
+// * * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * //
+
+template<class EquationOfState, int PolySize>
+inline void Foam::hNanoFluidPolynomialThermo<EquationOfState, PolySize>::operator+=
+(
+    const hNanoFluidPolynomialThermo<EquationOfState, PolySize>& pt
+)
+{
+    scalar Y1 = this->Y();
+
+    EquationOfState::operator+=(pt);
+
+    if (mag(this->Y()) > SMALL)
+    {
+        Y1 /= this->Y();
+        const scalar Y2 = pt.Y()/this->Y();
+
+        Hf_ = Y1*Hf_ + Y2*pt.Hf_;
+        Sf_ = Y1*Sf_ + Y2*pt.Sf_;
+        CpCoeffs_ = Y1*CpCoeffs_ + Y2*pt.CpCoeffs_;
+        hCoeffs_ = Y1*hCoeffs_ + Y2*pt.hCoeffs_;
+        sCoeffs_ = Y1*sCoeffs_ + Y2*pt.sCoeffs_;
+    }
+}
+
+
+template<class EquationOfState, int PolySize>
+inline void Foam::hNanoFluidPolynomialThermo<EquationOfState, PolySize>::operator*=
+(
+    const scalar s
+)
+{
+    EquationOfState::operator*=(s);
+}
+
+
+// * * * * * * * * * * * * * * * Friend Operators  * * * * * * * * * * * * * //
+
+template<class EquationOfState, int PolySize>
+inline Foam::hNanoFluidPolynomialThermo<EquationOfState, PolySize> Foam::operator+
+(
+    const hNanoFluidPolynomialThermo<EquationOfState, PolySize>& pt1,
+    const hNanoFluidPolynomialThermo<EquationOfState, PolySize>& pt2
+)
+{
+    EquationOfState eofs = pt1;
+    eofs += pt2;
+
+    if (mag(eofs.Y()) < SMALL)
+    {
+        return hNanoFluidPolynomialThermo<EquationOfState, PolySize>
+        (
+            eofs,
+            pt1.Hf_,
+            pt1.Sf_,
+            pt1.CpCoeffs_,
+            pt1.hCoeffs_,
+            pt1.sCoeffs_
+        );
+    }
+    {
+        const scalar Y1 = pt1.Y()/eofs.Y();
+        const scalar Y2 = pt2.Y()/eofs.Y();
+
+        return hNanoFluidPolynomialThermo<EquationOfState, PolySize>
+        (
+            eofs,
+            Y1*pt1.Hf_ + Y2*pt2.Hf_,
+            Y1*pt1.Sf_ + Y2*pt2.Sf_,
+            Y1*pt1.CpCoeffs_ + Y2*pt2.CpCoeffs_,
+            Y1*pt1.hCoeffs_ + Y2*pt2.hCoeffs_,
+            Y1*pt1.sCoeffs_ + Y2*pt2.sCoeffs_
+        );
+    }
+}
+
+
+template<class EquationOfState, int PolySize>
+inline Foam::hNanoFluidPolynomialThermo<EquationOfState, PolySize> Foam::operator*
+(
+    const scalar s,
+    const hNanoFluidPolynomialThermo<EquationOfState, PolySize>& pt
+)
+{
+    return hNanoFluidPolynomialThermo<EquationOfState, PolySize>
+    (
+        s*static_cast<const EquationOfState&>(pt),
+        pt.Hf_,
+        pt.Sf_,
+        pt.CpCoeffs_,
+        pt.hCoeffs_,
+        pt.sCoeffs_,
+        pt.rhoCoeffs_,
+        pt.rhoP_,
+        pt.CpP_
+    );
+}
+
+
+template<class EquationOfState, int PolySize>
+inline Foam::hNanoFluidPolynomialThermo<EquationOfState, PolySize> Foam::operator==
+(
+    const hNanoFluidPolynomialThermo<EquationOfState, PolySize>& pt1,
+    const hNanoFluidPolynomialThermo<EquationOfState, PolySize>& pt2
+)
+{
+    EquationOfState eofs
+    (
+        static_cast<const EquationOfState&>(pt1)
+     == static_cast<const EquationOfState&>(pt2)
+    );
+
+    const scalar Y1 = pt1.Y()/eofs.Y();
+    const scalar Y2 = pt2.Y()/eofs.Y();
+
+    return hNanoFluidPolynomialThermo<EquationOfState, PolySize>
+    (
+        eofs,
+        Y2*pt2.Hf_       - Y1*pt1.Hf_,
+        Y2*pt2.Sf_       - Y1*pt1.Sf_,
+        Y2*pt2.CpCoeffs_ - Y1*pt1.CpCoeffs_,
+        Y2*pt2.hCoeffs_  - Y1*pt1.hCoeffs_,
+        Y2*pt2.sCoeffs_  - Y1*pt1.sCoeffs_,
+        Y2*pt2.rhoCoeffs_  - Y1*pt1.rhoCoeffs_,
+        Y2*pt2.rhoP_       - Y1*pt1.rhoP_,
+        Y2*pt2.CpP_       - Y1*pt1.CpP_
+    );
+}
+
+
+// ************************************************************************* //
