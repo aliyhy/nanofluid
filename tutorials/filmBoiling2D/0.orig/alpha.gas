@@ -1,0 +1,79 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  plus                                  |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      alpha.liquid;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 0 0 0 0];
+
+internalField    #codeStream
+{
+	codeInclude
+	#{
+		#include "fvCFD.H"
+	#};
+        
+	codeOptions
+	#{
+		-I$(LIB_SRC)/finiteVolume/lnInclude \
+		-I$(LIB_SRC)/meshTools/lnInclude
+	#};
+
+	codeLibs
+	#{
+		-lmeshTools \
+		-lfiniteVolume
+	#};
+	code
+	#{
+       	const IOdictionary& d = static_cast<const IOdictionary&>(dict);
+		const fvMesh& mesh = refCast<const fvMesh>(d.db());
+		scalarField alpha(mesh.nCells(), 0.);
+		scalar lambda =  2.29922953e-3;
+		forAll(alpha, i)
+		{
+			const scalar x = mesh.C()[i][0];
+			const scalar y = mesh.C()[i][1];
+			if ( y <= lambda/128*(4+cos(2*constant::mathematical::pi*x/lambda)) )
+			{
+				alpha[i] = 1.;
+			}
+		}
+		alpha.writeEntry("", os);
+	#};
+};
+
+boundaryField
+{
+    up
+    {
+        type            inletOutlet;
+        inletValue      uniform 0;
+        value           uniform 1;
+    }
+    "wall.*"
+    {
+        type            cyclic;
+    }
+    down
+    {
+        type            fixedValue;
+        value           uniform 1;
+    }
+    frontAndBack
+    {
+        type            empty;
+    }
+}
+
+// ************************************************************************* //

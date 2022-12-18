@@ -1,0 +1,11 @@
+    components(U)
+    {
+        type            components;
+        libs            ( fieldFunctionObjects );
+        field           U;
+//        executeControl  timeStep;
+     writeControl            adjustableRunTime;
+    writeInterval           0.01;
+        fields          1 ( U );
+    }
+

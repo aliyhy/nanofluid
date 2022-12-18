@@ -1,0 +1,120 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  plus                                  |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+
+internalField    #codeStream
+{
+	codeInclude
+	#{
+		#include "fvCFD.H"
+    #include <iostream>
+    #include <time.h>
+    #include <cstdlib>
+    using namespace std;
+	#};
+        
+	codeOptions
+	#{
+		-I$(LIB_SRC)/finiteVolume/lnInclude \
+		-I$(LIB_SRC)/meshTools/lnInclude
+	#};
+
+	codeLibs
+	#{
+		-lmeshTools \
+		-lfiniteVolume
+	#};
+	code
+	#{
+    
+    const IOdictionary& d = static_cast<const IOdictionary&>(dict);
+		const fvMesh& mesh = refCast<const fvMesh>(d.db());
+		
+    vectorField U(mesh.nCells(), vector(0,0,0));
+
+    srand( (unsigned)time( NULL ) ); 
+    
+    for (int j=0; j <= 20; j++) 
+    {
+
+    cout << "j  " << j << '\n';
+    scalar randomY = 0.075 + (float) (rand()) / ( (float) (RAND_MAX/(0.3-0.075)));
+    scalar randomUx = 1.5 + (float) (rand()) / ( (float) (RAND_MAX/(2.5-1.5)));
+    scalar randomUy = 1.5 + (float) (rand()) / ( (float) (RAND_MAX/(2.5-1.5)));
+
+
+    cout << "randomY  " << randomY << '\n';
+    cout << "randomUx  " << randomUx << '\n';
+    cout << "randomUy  " << randomUy << '\n';
+    
+    scalar lambda =  2.29922953e-3;
+    scalar he = j*lambda/2;
+    scalar ke = randomY*lambda;
+    scalar ae = 0.15*lambda;
+    scalar be = 0.075*lambda;
+
+
+		forAll(U, i)
+		{
+
+
+      const scalar x = mesh.C()[i][0];
+			const scalar y = mesh.C()[i][1];
+
+			if (  pow(y-ke,2) <= ((1 - pow(x-he,2)/pow(ae,2) )*pow(be,2)) )
+			{
+        if ( j % 2 != 0 )
+        {
+          U[i] = vector(randomUx*2.5e-2, -1.*randomUy*2.5e-2, 0);
+        }
+        else
+        {
+          U[i] = vector(randomUx*-2.5e-2, -1.*randomUy*2.5e-2, 0);
+        }
+			}
+		}
+    }
+		U.writeEntry("", os);
+	#};
+};
+
+
+boundaryField
+{
+    up
+    {
+        type           pressureInletOutletVelocity;
+        value          uniform (0 0 0);
+    }
+    "wall.*"
+    {
+        type            cyclic;
+    }
+    down
+    {
+        type            fixedValue;
+        value           uniform (0 0 0);
+    }
+    frontAndBack
+    {
+        type            empty;
+    }
+}
+
+
+// ************************************************************************* //

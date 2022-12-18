@@ -1,0 +1,17 @@
+fieldAverage1
+{
+        type                fieldAverage;
+        libs                (fieldFunctionObjects);
+        writeControl        writeTime;
+
+        fields
+        (
+            U
+            {
+                mean        on;
+                prime2Mean  on;
+                base        time;
+            }
+        );
+}
+

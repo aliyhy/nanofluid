@@ -1,0 +1,69 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2006                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      thermophysicalProperties.liquid;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+thermoType
+{
+    type            heRhoThermo;
+    mixture         pureMixture;
+    transport       CorcioneTimofeeva;
+    thermo          hNanoFluidPolynomial;
+    equationOfState icoNanoFluidPolynomial;
+    specie          specie;
+    energy          sensibleEnthalpy;
+}
+
+
+
+mixture
+{
+    specie
+    {
+        nMoles          1.;
+        molWeight       18.;
+    }
+    equationOfState
+    {
+        rhoCoeffs<8>     (402.4 0 0 0 0 0 0 0);
+    }
+    thermodynamics
+    {
+        CpCoeffs<8>     (2.18e5 0 0 0  0 0 0 0);
+        Hf              2.24e6;
+        Sf              0;
+    }
+    transport
+    {
+        muCoeffs<8>     (4.66784E-05 0 0 0 0 0 0 0);
+        kappaCoeffs<8>   (0.545 0 0 0 0 0 0 0); // (-0.710696 0.0071857 -9.29827e-6 0 0 0 0 0);
+        rho0            402.4;
+        Tfr             273.15;
+        Tc              747.14;
+        Pr              18.67;
+    }
+    nanoParticle
+    {
+    phiP            0.01; //0.04*0.555555556
+        dP              38.4e-9;
+        kappaPCoeffs<8>    (147.6822762 -0.793045329 0.001953754  -2.27086E-06 1.00501E-09 0 0 0 );
+        rhoP            3890;
+        CpP             0.880;
+        nP              3;
+    }
+
+}
+
+
+
+// ************************************************************************* //

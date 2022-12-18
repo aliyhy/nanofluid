@@ -1,0 +1,82 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2006                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale  2.29922953e-3;
+
+Xlength     10;
+Yheight     1;
+gridNumber  160;
+
+  
+vertices
+(
+    (0 0 0)
+    ($Xlength 0 0)
+    ($Xlength $Yheight 0)
+    (0 $Yheight  0)
+    (0 0 0.1)
+    ($Xlength 0 0.1)
+    ($Xlength $Yheight 0.1)
+    (0 $Yheight 0.1)
+);
+
+Rx #calc "2*$gridNumber*$Xlength";
+Ry #calc "2*$gridNumber*$Yheight ";
+
+blocks          
+(
+    hex (0 1 2 3 4 5 6 7) ($Rx $Ry 1) simpleGrading (1 1 1)
+);
+
+boundary
+(
+    down
+    {
+        type            wall;
+        faces           ((1 5 4 0));
+    }
+    up
+    {
+        type            patch;
+        faces           ((3 7 6 2));
+    }
+
+    wallLeft
+    {
+        type            cyclic;
+        neighbourPatch  wallRight;
+        faces           ((0 4 7 3));
+    }
+    wallRight
+    {
+        type            cyclic;
+        neighbourPatch  wallLeft;
+        faces           ((2 6 5 1));
+    }
+    frontAndBack
+    {
+        type empty;
+        faces
+        (
+            (0 3 2 1)
+            (4 5 6 7)
+        );
+    }
+ 
+
+);
+
+// ************************************************************************* //

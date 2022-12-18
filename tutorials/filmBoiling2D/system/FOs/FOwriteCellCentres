@@ -1,0 +1,11 @@
+writeCellCentres
+{
+    // Mandatory entries
+    type            writeCellCentres;
+    libs            (fieldFunctionObjects);
+
+    // Optional (inherited) entries
+    enabled         true;
+    log             true;
+    writeControl    writeTime;
+}
