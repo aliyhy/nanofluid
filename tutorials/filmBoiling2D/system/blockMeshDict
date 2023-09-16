@@ -16,9 +16,9 @@ FoamFile
 
 scale  2.29922953e-3;
 
-Xlength     10;
+Xlength     1.1;
 Yheight     1;
-gridNumber  160;
+gridNumber  220;
 
   
 vertices
